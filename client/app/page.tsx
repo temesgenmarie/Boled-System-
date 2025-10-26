@@ -1,15 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import LoginForm from "@/components/auth/login-form"
 
 export default function Home() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken")
+    if (token) {
+      router.push("/dashboard")
+    }
+  }, [router])
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true)
+    setError("")
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -24,19 +33,19 @@ export default function Home() {
         localStorage.setItem("orgName", data.orgName)
         router.push("/dashboard")
       } else {
-        alert("Invalid credentials")
+        setError("Invalid credentials. Please try again.")
       }
     } catch (error) {
       console.error("Login error:", error)
-      alert("Login failed")
+      setError("Login failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-slate-50 dark:to-slate-900 p-4">
+      <LoginForm onSubmit={handleLogin} isLoading={isLoading} error={error} />
     </div>
   )
 }
