@@ -1,37 +1,36 @@
+import 'package:uuid/uuid.dart';
+
+enum MemberRole { admin, user }
+
 class Member {
   final String id;
-  final String firstName;
-  final String lastName;
+  final String fullName;
   final String phone;
-  final String email;
-  final DateTime dateOfBirth;
-  final String? address;
+  final String? email;
+  final String organizationId;
+  final MemberRole role; // Added role field for admin/user distinction
   final bool isActive;
   final DateTime createdAt;
 
   Member({
     required this.id,
-    required this.firstName,
-    required this.lastName,
+    required this.fullName,
     required this.phone,
-    required this.email,
-    required this.dateOfBirth,
-    this.address,
+    this.email,
+    required this.organizationId,
+    required this.role,
     required this.isActive,
     required this.createdAt,
   });
 
-  String get fullName => '$firstName $lastName';
-
   factory Member.fromJson(Map<String, dynamic> json) {
     return Member(
       id: json['id'] as String,
-      firstName: json['firstName'] as String,
-      lastName: json['lastName'] as String,
+      fullName: json['fullName'] as String,
       phone: json['phone'] as String,
-      email: json['email'] as String,
-      dateOfBirth: DateTime.parse(json['dateOfBirth'] as String),
-      address: json['address'] as String?,
+      email: json['email'] as String?,
+      organizationId: json['organizationId'] as String,
+      role: MemberRole.values.byName(json['role'] as String? ?? 'user'),
       isActive: json['isActive'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
@@ -40,12 +39,11 @@ class Member {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'firstName': firstName,
-      'lastName': lastName,
+      'fullName': fullName,
       'phone': phone,
       'email': email,
-      'dateOfBirth': dateOfBirth.toIso8601String(),
-      'address': address,
+      'organizationId': organizationId,
+      'role': role.name,
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -53,23 +51,21 @@ class Member {
 
   Member copyWith({
     String? id,
-    String? firstName,
-    String? lastName,
+    String? fullName,
     String? phone,
     String? email,
-    DateTime? dateOfBirth,
-    String? address,
+    String? organizationId,
+    MemberRole? role,
     bool? isActive,
     DateTime? createdAt,
   }) {
     return Member(
       id: id ?? this.id,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
+      fullName: fullName ?? this.fullName,
       phone: phone ?? this.phone,
       email: email ?? this.email,
-      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-      address: address ?? this.address,
+      organizationId: organizationId ?? this.organizationId,
+      role: role ?? this.role,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
     );

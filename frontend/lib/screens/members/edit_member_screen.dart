@@ -15,43 +15,33 @@ class EditMemberScreen extends ConsumerStatefulWidget {
 }
 
 class _EditMemberScreenState extends ConsumerState<EditMemberScreen> {
-  late TextEditingController _firstNameController;
-  late TextEditingController _lastNameController;
+  late TextEditingController _fullNameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
-  late TextEditingController _addressController;
-  DateTime? _dateOfBirth;
   bool _isActive = true;
 
   @override
   void initState() {
     super.initState();
-    _firstNameController = TextEditingController();
-    _lastNameController = TextEditingController();
+    _fullNameController = TextEditingController();
     _phoneController = TextEditingController();
     _emailController = TextEditingController();
-    _addressController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _fullNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
   void _handleSave() async {
     final member = await ref.read(memberDetailProvider(widget.memberId).future);
     final updatedMember = member.copyWith(
-      firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
+      fullName: _fullNameController.text,
       phone: _phoneController.text,
-      email: _emailController.text,
-      dateOfBirth: _dateOfBirth ?? member.dateOfBirth,
-      address: _addressController.text.isEmpty ? null : _addressController.text,
+      email: _emailController.text.isEmpty ? null : _emailController.text,
       isActive: _isActive,
     );
 
@@ -74,13 +64,10 @@ class _EditMemberScreenState extends ConsumerState<EditMemberScreen> {
       body: memberAsync.when(
         data: (member) {
           // Initialize controllers on first build
-          if (_firstNameController.text.isEmpty) {
-            _firstNameController.text = member.firstName;
-            _lastNameController.text = member.lastName;
+          if (_fullNameController.text.isEmpty) {
+            _fullNameController.text = member.fullName;
             _phoneController.text = member.phone;
-            _emailController.text = member.email;
-            _addressController.text = member.address ?? '';
-            _dateOfBirth = member.dateOfBirth;
+            _emailController.text = member.email ?? '';
             _isActive = member.isActive;
           }
 
@@ -89,13 +76,8 @@ class _EditMemberScreenState extends ConsumerState<EditMemberScreen> {
             child: Column(
               children: [
                 TextField(
-                  controller: _firstNameController,
-                  decoration: const InputDecoration(labelText: 'First Name'),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _lastNameController,
-                  decoration: const InputDecoration(labelText: 'Last Name'),
+                  controller: _fullNameController,
+                  decoration: const InputDecoration(labelText: 'Full Name'),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -105,29 +87,7 @@ class _EditMemberScreenState extends ConsumerState<EditMemberScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  title: const Text('Date of Birth'),
-                  subtitle: Text(_dateOfBirth?.toString().split(' ')[0] ?? ''),
-                  onTap: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: _dateOfBirth ?? DateTime.now(),
-                      firstDate: DateTime(1900),
-                      lastDate: DateTime.now(),
-                    );
-                    if (date != null) {
-                      setState(() => _dateOfBirth = date);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _addressController,
-                  decoration: const InputDecoration(labelText: 'Address'),
-                  maxLines: 3,
+                  decoration: const InputDecoration(labelText: 'Email (Optional)'),
                 ),
                 const SizedBox(height: 16),
                 CheckboxListTile(

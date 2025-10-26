@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:admin_app/models/member_model.dart';
 import 'package:admin_app/providers/members_provider.dart';
+import 'package:admin_app/providers/auth_provider.dart';
 import 'package:admin_app/widgets/modals/success_modal.dart';
 import 'package:admin_app/widgets/modals/error_modal.dart';
+import 'package:admin_app/theme/app_theme.dart';
 import 'package:uuid/uuid.dart';
 
 class AddMemberScreen extends ConsumerStatefulWidget {
@@ -15,61 +17,50 @@ class AddMemberScreen extends ConsumerStatefulWidget {
 }
 
 class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
-  late TextEditingController _firstNameController;
-  late TextEditingController _lastNameController;
+  late TextEditingController _fullNameController;
   late TextEditingController _phoneController;
-  late TextEditingController _emailController;
-  late TextEditingController _addressController;
-  DateTime? _dateOfBirth;
+  MemberRole _selectedRole = MemberRole.user; // Added role selection
   bool _isActive = true;
 
   @override
   void initState() {
     super.initState();
-    _firstNameController = TextEditingController();
-    _lastNameController = TextEditingController();
+    _fullNameController = TextEditingController();
     _phoneController = TextEditingController();
-    _emailController = TextEditingController();
-    _addressController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _fullNameController.dispose();
     _phoneController.dispose();
-    _emailController.dispose();
-    _addressController.dispose();
     super.dispose();
   }
 
   bool _validateForm() {
-    if (_firstNameController.text.isEmpty ||
-        _lastNameController.text.isEmpty ||
-        _phoneController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _dateOfBirth == null) {
+    if (_fullNameController.text.isEmpty || _phoneController.text.isEmpty) {
       return false;
     }
-    return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(_emailController.text);
+    return true;
   }
 
   void _handleSave() async {
     if (!_validateForm()) {
-      showErrorModal(context, 'Please fill all required fields correctly');
+      showErrorModal(context, 'Please fill all required fields');
       return;
     }
 
+    final authState = ref.read(authStateProvider);
+    final organizationId = authState.organization?.id ?? 'default-org';
+
     final member = Member(
       id: const Uuid().v4(),
-      firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
+      fullName: _fullNameController.text, // Simplified to fullName only
       phone: _phoneController.text,
-      email: _emailController.text,
-      dateOfBirth: _dateOfBirth!,
-      address: _addressController.text.isEmpty ? null : _addressController.text,
+      email: null,
+      role: _selectedRole, // Added role assignment
       isActive: _isActive,
       createdAt: DateTime.now(),
+      organizationId: organizationId,
     );
 
     try {
@@ -89,51 +80,57 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
-              controller: _firstNameController,
-              decoration: const InputDecoration(labelText: 'First Name *'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _lastNameController,
-              decoration: const InputDecoration(labelText: 'Last Name *'),
+              controller: _fullNameController,
+              decoration: const InputDecoration(
+                labelText: 'Full Name *',
+                hintText: 'Enter member full name',
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _phoneController,
-              decoration: const InputDecoration(labelText: 'Phone *'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email *'),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              title: const Text('Date of Birth *'),
-              subtitle: Text(
-                _dateOfBirth?.toString().split(' ')[0] ?? 'Not selected',
+              decoration: const InputDecoration(
+                labelText: 'Phone Number *',
+                hintText: 'Enter phone number',
               ),
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(1900),
-                  lastDate: DateTime.now(),
-                );
-                if (date != null) {
-                  setState(() => _dateOfBirth = date);
-                }
-              },
+            ),
+            const SizedBox(height: 24),
+            
+            Text(
+              'Member Role *',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: AppTheme.borderColor),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: DropdownButton<MemberRole>(
+                value: _selectedRole,
+                isExpanded: true,
+                underline: const SizedBox(),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                items: MemberRole.values.map((role) {
+                  return DropdownMenuItem(
+                    value: role,
+                    child: Text(role.name.toUpperCase()),
+                  );
+                }).toList(),
+                onChanged: (role) {
+                  if (role != null) {
+                    setState(() => _selectedRole = role);
+                  }
+                },
+              ),
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _addressController,
-              decoration: const InputDecoration(labelText: 'Address'),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
+            
             CheckboxListTile(
               title: const Text('Active'),
               value: _isActive,

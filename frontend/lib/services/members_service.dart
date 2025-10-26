@@ -6,25 +6,23 @@ class MembersService {
   static final List<Member> _mockMembers = [
     Member(
       id: '1',
-      firstName: 'John',
-      lastName: 'Doe',
+      fullName: 'John Doe',
       phone: '555-0101',
       email: 'john@example.com',
-      dateOfBirth: DateTime(1990, 5, 15),
-      address: '123 Main St',
       isActive: true,
       createdAt: DateTime.now().subtract(const Duration(days: 30)),
+      organizationId: 'org-1',
+      role: MemberRole.user,
     ),
     Member(
       id: '2',
-      firstName: 'Jane',
-      lastName: 'Smith',
+      fullName: 'Jane Smith',
       phone: '555-0102',
       email: 'jane@example.com',
-      dateOfBirth: DateTime(1985, 8, 20),
-      address: '456 Oak Ave',
       isActive: true,
       createdAt: DateTime.now().subtract(const Duration(days: 20)),
+      organizationId: 'org-1',
+      role: MemberRole.admin,
     ),
   ];
 
@@ -43,7 +41,7 @@ class MembersService {
       results = results
           .where((m) =>
               m.fullName.toLowerCase().contains(searchQuery.toLowerCase()) ||
-              m.email.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              (m.email?.toLowerCase().contains(searchQuery.toLowerCase()) ?? false) ||
               m.phone.contains(searchQuery))
           .toList();
     }

@@ -35,14 +35,13 @@ class MemberDetailScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _DetailRow(label: 'Email', value: member.email),
                         _DetailRow(label: 'Phone', value: member.phone),
+                        if (member.email != null)
+                          _DetailRow(label: 'Email', value: member.email!),
                         _DetailRow(
-                          label: 'Date of Birth',
-                          value: member.dateOfBirth.toString().split(' ')[0],
+                          label: 'Role',
+                          value: member.role.name.toUpperCase(),
                         ),
-                        if (member.address != null)
-                          _DetailRow(label: 'Address', value: member.address!),
                         _DetailRow(
                           label: 'Status',
                           value: member.isActive ? 'Active' : 'Inactive',
